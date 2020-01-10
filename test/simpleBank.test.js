@@ -29,7 +29,7 @@ contract('SimpleBank', function(accounts) {
     assert.equal(aliceEnrolled, true, 'enroll balance is incorrect, check balance method or constructor')
   });
 
-  it("should not mark unenrolled users as enrolled", async() =>{
+  it("should not mark unenrolled users as enrolled", async () =>{
     const ownerEnrolled = await instance.enrolled(owner, {from: owner})
     assert.equal(ownerEnrolled, false, 'only enrolled users should be marked enrolled')
   })
@@ -42,7 +42,7 @@ contract('SimpleBank', function(accounts) {
     assert.equal(deposit.toString(), balance, 'deposit amount incorrect, check deposit method')
   })
 
-  it("should log a deposit event when a deposit is made", async() => {
+  it("should log a deposit event when a deposit is made", async () => {
     await instance.enroll({from: alice})
     const result  = await instance.deposit({from: alice, value: deposit})
     

@@ -11,13 +11,14 @@ contract SimpleBank {
     //
     // State variables
     //
-    address payable customer;
+    //address payable customer;
+    //address[] enrolled; //use mapping instead
     
     /* Fill in the keyword. Hint: We want to protect our users balance from other contracts*/
-    mapping (address => uint) balances;
+    mapping (address => uint) private balances;
     
     /* Fill in the keyword. We want to create a getter function and allow contracts to be able to see if a user is enrolled.  */
-    mapping (address => bool) enrolled;
+    mapping (address => bool) public enrolled;
 
     /* Let's make sure everyone knows who owns the bank. Use the appropriate keyword for this*/
     address owner;
@@ -59,7 +60,7 @@ contract SimpleBank {
     /// @return The balance of the user
     // A SPECIAL KEYWORD prevents function from editing state variables;
     // allows function to run locally/off blockchain
-    function getBalance() public view returns (uint) {
+    function getBalance() public view returns (uint messageSenderBalance) {
         /* Get the balance of the sender of this transaction */
         return balances[msg.sender];
     }
@@ -67,23 +68,26 @@ contract SimpleBank {
     /// @notice Enroll a customer with the bank
     /// @return The users enrolled status
     // Emit the appropriate event
-    function enroll() public returns (bool) {
-        enrolled[msg.sender]==true;
+    function enroll() public returns (bool enrollmentStatus) {
+        enrolled[msg.sender] = true;
+        enrollmentStatus = enrolled[msg.sender];
         emit LogEnrolled(msg.sender);
-        return  enrolled[msg.sender];
+        return  enrollmentStatus;
     }
 
     /// @notice Deposit ether into bank
     /// @return The balance of the user after the deposit is made
     // Add the appropriate keyword so that this function can receive ether
     // Use the appropriate global variables to get the transaction sender and value
-    // Emit the appropriate event    
+    // Emit the appropriate event
     // Users should be enrolled before they can make deposits
-    function deposit(uint amount) public payable returns (uint) {
+
+    function deposit() public payable returns (uint) {
         /* Add the amount to the user's balance, call the event associated with a deposit,
           then return the balance of the user */
-        balances[msg.sender]+=amount;
-        emit LogDepositMade(msg.sender, amount);
+        require(enrolled[msg.sender], "User needs to enroll first");
+        balances[msg.sender] += msg.value;
+        emit LogDepositMade(msg.sender,  balances[msg.sender] );
         return  balances[msg.sender];
     }
 
@@ -93,8 +97,8 @@ contract SimpleBank {
     /// @return The balance remaining for the user
     // Emit the appropriate event    
     function withdraw(uint withdrawAmount) public returns (uint) {
-        require (balances[msg.sender] >= withdrawAmount,"Insufficient Balance");
-        balances[msg.sender]-=withdrawAmount;
+        require(balances[msg.sender] >= withdrawAmount,"Insufficient Balance");
+        balances[msg.sender] -= withdrawAmount;
         msg.sender.transfer(withdrawAmount);    
         emit LogWithdrawal(msg.sender, withdrawAmount, balances[msg.sender]);
         return balances[msg.sender];
